@@ -1,0 +1,12 @@
+# --- Data ---
+pandas>=2.0
+openpyxl>=3.1            # .xlsx reading for pandas
+xlrd>=2.0.1             # legacy .xls reading (1C "остатки изделий.xls")
+
+# --- Validation / config ---
+pydantic>=2.5
+pydantic-settings>=2.1   # reads .env into a typed Settings object
+
+# --- Google Sheets ---
+gspread>=6.0
+google-auth>=2.27        # service-account credentials

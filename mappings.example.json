@@ -1,0 +1,12 @@
+{
+  "_comment": "Copy to mappings.json. Maps an EXACT raw 1C/Sheet string to a canonical SKU. Keys are matched case/space/punctuation-insensitively. Use this for names the auto-normaliser can't reconcile.",
+
+  "Корсет 'Асти' (бежевый), размер L": "корсет асти|бежевый|L",
+  "Корсет Асти беж L": "корсет асти|бежевый|L",
+
+  "Корсет 'Асти' (бежевый), размер M": "корсет асти|бежевый|M",
+  "Корсет Асти беж M": "корсет асти|бежевый|M",
+
+  "Боди \"Лея\" черное, разм. S": "боди лея|черный|S",
+  "Боди Лея чер S": "боди лея|черный|S"
+}

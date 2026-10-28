@@ -1,0 +1,70 @@
+name: Build macOS app
+
+# Запуск: вкладка Actions -> "Build macOS app" -> "Run workflow"  (workflow_dispatch)
+# либо автоматически при пуше тега вида v1.0
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build-macos:
+    # macos-13 = Intel (x86_64). Такой .app работает на ВСЕХ Mac:
+    # на Intel — нативно, на Apple Silicon (M1/M2/M3) — через Rosetta 2.
+    runs-on: macos-13
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller pillow
+
+      - name: Generate .icns icon
+        run: |
+          python make_icon.py            # создаёт app_icon_1024.png
+          mkdir -p app.iconset
+          sips -z 16 16     app_icon_1024.png --out app.iconset/icon_16x16.png
+          sips -z 32 32     app_icon_1024.png --out app.iconset/icon_16x16@2x.png
+          sips -z 32 32     app_icon_1024.png --out app.iconset/icon_32x32.png
+          sips -z 64 64     app_icon_1024.png --out app.iconset/icon_32x32@2x.png
+          sips -z 128 128   app_icon_1024.png --out app.iconset/icon_128x128.png
+          sips -z 256 256   app_icon_1024.png --out app.iconset/icon_128x128@2x.png
+          sips -z 256 256   app_icon_1024.png --out app.iconset/icon_256x256.png
+          sips -z 512 512   app_icon_1024.png --out app.iconset/icon_256x256@2x.png
+          sips -z 512 512   app_icon_1024.png --out app.iconset/icon_512x512.png
+          cp app_icon_1024.png app.iconset/icon_512x512@2x.png
+          iconutil -c icns app.iconset -o app.icns
+
+      - name: Build .app with PyInstaller
+        run: |
+          pyinstaller --noconfirm --clean --windowed \
+            --name "ProductionPlanner_v2" \
+            --icon app.icns \
+            --collect-all gspread --collect-all google \
+            --collect-all pydantic --collect-all pydantic_settings \
+            --collect-submodules pandas \
+            --hidden-import xlrd --hidden-import openpyxl \
+            main_gui.py
+
+      - name: Rename to Russian label + zip
+        run: |
+          cd dist
+          mv "ProductionPlanner_v2.app" "ПланировщикПроизводства_v2.app"
+          # -y сохраняет структуру .app (симлинки внутри бандла)
+          zip -r -y "ProductionPlanner_v2-macos.zip" "ПланировщикПроизводства_v2.app"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProductionPlanner_v2-macos
+          path: dist/ProductionPlanner_v2-macos.zip
+          retention-days: 30
